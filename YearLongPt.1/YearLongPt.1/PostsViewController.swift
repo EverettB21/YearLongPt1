@@ -9,7 +9,7 @@ import UIKit
 import MobileCoreServices
 import UniformTypeIdentifiers
 
-class PostsViewController: UIViewController, UIDocumentPickerDelegate {
+class PostsViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     var numPosts = 0
     @IBOutlet weak var titleLabel: UILabel!
@@ -63,18 +63,23 @@ class PostsViewController: UIViewController, UIDocumentPickerDelegate {
         }
     }
     
-    func showDocumentPicker() {
-        let dp = UIDocumentPickerViewController(documentTypes: ["public.item"], in: .import)
-        dp.delegate = self
-        present(dp, animated: true, completion: nil)
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let selectedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            posts[0].image = selectedImage
+            updatePosts()
+            picker.dismiss(animated: true, completion: nil)
+        }
     }
     
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        if let myURL = urls.first {
-            let img = UIImage(contentsOfFile: myURL.path())
-            posts[0].image = img ?? UIImage()
-            updatePosts()
-        }
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+    
+    func imagePicker() {
+        let ip = UIImagePickerController()
+        ip.delegate = self
+        ip.sourceType = .photoLibrary
+        self.present(ip, animated: true, completion: nil)
     }
     
     @IBAction func addPost(_ sender: Any) {
@@ -82,7 +87,7 @@ class PostsViewController: UIViewController, UIDocumentPickerDelegate {
         
         let button = UIAlertAction(title: "Choose File", style: .default) { [weak self, weak ac] _ in
             self?.submit(image: nil, text: ac?.textFields?[0].text ?? "Post")
-            self?.showDocumentPicker()
+            self?.imagePicker()
         }
         
         ac.addTextField() {text in
